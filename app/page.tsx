@@ -3,46 +3,91 @@
 import { useState } from "react";
 
 export default function Page() {
+  const [theme, setTheme] = useState("");
+  const [plot, setPlot] = useState("");
+  const [styleSample, setStyleSample] = useState("");
   const [result, setResult] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   async function generate() {
     setLoading(true);
-    const res = await fetch("/api/generate", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        theme: "重逢后的克制",
-        plotPoints: ["久别重逢", "未说出口的情绪"],
-        wordCount: 600,
-        characters: [
-          {
-            name: "A",
-            personalityCore: "冷静克制、情绪内敛",
-            speakingStyle: "短句、少解释",
-            behaviorPattern: "用行动代替语言"
-          },
-          {
-            name: "B",
-            personalityCore: "温和敏感、情绪外显",
-            speakingStyle: "语气委婉，容易停顿",
-            behaviorPattern: "反复确认对方态度"
-          }
-        ],
-        styleSample: "他站在门口，没有立刻进来。灯光落在他肩上，像迟疑本身。"
-      })
-    });
+    setError("");
+    setResult("");
 
-    const data = await res.json();
-    setResult(data.text);
+    try {
+      const res = await fetch("/api/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          theme,
+          plotPoints: plot.split("，").filter(Boolean),
+          wordCount: 800,
+          characters: [
+            {
+              name: "陈楚生",
+              personalityCore: "克制、冷静、习惯把情绪藏起来",
+              speakingStyle: "话不多，语气平稳，偶尔一针见血",
+              behaviorPattern: "更倾向于照顾别人而不是表达自己"
+            },
+            {
+              name: "王栎鑫",
+              personalityCore: "外放、敏感、情绪直接",
+              speakingStyle: "说话快，情绪起伏明显",
+              behaviorPattern: "会主动靠近、试探对方态度"
+            }
+          ],
+          styleSample
+        })
+      });
+
+      const data = await res.json();
+      setResult(data.text || "（生成失败，没有返回内容）");
+    } catch (e) {
+      setError("生成失败，请稍后重试");
+    }
+
     setLoading(false);
   }
 
   return (
-    <main style={{ padding: 20 }}>
-      <button onClick={generate}>
-        {loading ? "生成中…" : "生成同人文"}
+    <main style={{ padding: 20, maxWidth: 800 }}>
+      <h2>同人文生成｜陈楚生 × 王栎鑫</h2>
+
+      <div>
+        <label>主题</label>
+        <input
+          value={theme}
+          onChange={e => setTheme(e.target.value)}
+          style={{ width: "100%" }}
+        />
+      </div>
+
+      <div>
+        <label>情节关键词（用中文逗号分隔）</label>
+        <input
+          value={plot}
+          onChange={e => setPlot(e.target.value)}
+          style={{ width: "100%" }}
+        />
+      </div>
+
+      <div>
+        <label>文风参考段落</label>
+        <textarea
+          value={styleSample}
+          onChange={e => setStyleSample(e.target.value)}
+          rows={6}
+          style={{ width: "100%" }}
+        />
+      </div>
+
+      <button onClick={generate} disabled={loading}>
+        {loading ? "生成中，请稍等…" : "生成同人文"}
       </button>
+
+      {error && <p style={{ color: "red" }}>{error}</p>}
+
       <textarea
         value={result}
         readOnly
