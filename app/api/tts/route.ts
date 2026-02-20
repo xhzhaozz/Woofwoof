@@ -1,38 +1,24 @@
 import { NextResponse } from "next/server";
 import OpenAI from "openai";
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY!,
-});
-
 export async function POST(req: Request) {
   try {
-    const { text, role } = await req.json();
+    // ✅ 放到函数里
+    const openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY!,
+    });
 
-    if (!text) {
-      return NextResponse.json({ error: "No text" }, { status: 400 });
-    }
+    const { text, voice } = await req.json();
 
-    let voice = "alloy";
-    let stylePrompt = "";
-
-    if (role === "chusheng") {
-      voice = "alloy";
-      stylePrompt =
-        "语气克制、低沉、偏成熟男性，略带南方口语，不急不缓，有停顿感。";
-    }
-
-    if (role === "lixin") {
-      voice = "alloy";
-      stylePrompt =
-        "语速偏快，情绪外放，青年男性，说话更有起伏和感染力。";
-    }
+    const stylePrompt =
+      voice === "陈楚生"
+        ? "语气克制、偏南方口语，语速稍慢，情绪内敛。"
+        : "语速偏快，情绪起伏明显，说话带点撒娇和试探。";
 
     const audio = await openai.audio.speech.create({
       model: "gpt-4o-mini-tts",
-      voice,
+      voice: "alloy",
       input: `${stylePrompt}\n\n请朗读以下文本：\n${text}`,
-      // ✅ 不要 format
     });
 
     const buffer = Buffer.from(await audio.arrayBuffer());
@@ -42,8 +28,11 @@ export async function POST(req: Request) {
         "Content-Type": "audio/mpeg",
       },
     });
-  } catch (err) {
-    console.error(err);
-    return NextResponse.json({ error: "TTS failed" }, { status: 500 });
+  } catch (e) {
+    console.error(e);
+    return NextResponse.json(
+      { error: "tts failed" },
+      { status: 500 }
+    );
   }
 }
