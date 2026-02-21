@@ -1,5 +1,5 @@
 export const metadata = {
-  title: "Fanfic AI",
+  title: "woofofchen",
   description: "AI 同人文生成器"
 };
 
