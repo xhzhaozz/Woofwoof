@@ -52,39 +52,6 @@ export default function Page() {
     setLoading(false);
   }
 
-  // 功能二：角色朗读
-  async function playTTS(role: "chusheng" | "lixin") {
-    if (!result) return;
-
-    setTtsLoading(role);
-
-    try {
-      const res = await fetch("/api/tts", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          text: result,
-          role,
-        }),
-      });
-
-      if (!res.ok) {
-        alert("语音生成失败");
-        setTtsLoading(null);
-        return;
-      }
-
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      const audio = new Audio(url);
-      audio.play();
-    } catch (e) {
-      alert("语音生成失败");
-    }
-
-    setTtsLoading(null);
-  }
-
   return (
     <main style={{ padding: 20, maxWidth: 800, margin: "0 auto" }}>
       <h2>同人文生成｜陈楚生 × 王栎鑫</h2>
@@ -134,32 +101,6 @@ export default function Page() {
         style={{ width: "100%", marginTop: 16 }}
       />
 
-      {result && (
-        <div style={{ marginTop: 12 }}>
-          <button
-            onClick={() => playTTS("chusheng")}
-            disabled={ttsLoading !== null}
-          >
-            {ttsLoading === "chusheng"
-              ? "朗读中…"
-              : "🎤 陈楚生 · 角色音朗读（微南方口语）"}
-          </button>
-
-          <button
-            onClick={() => playTTS("lixin")}
-            disabled={ttsLoading !== null}
-            style={{ marginLeft: 8 }}
-          >
-            {ttsLoading === "lixin"
-              ? "朗读中…"
-              : "🎧 王栎鑫 · 角色音朗读"}
-          </button>
-
-          <p style={{ fontSize: 12, opacity: 0.6, marginTop: 6 }}>
-            本语音为角色演绎音色，并非艺人本人声音，仅用于同人创作
-          </p>
-        </div>
-      )}
     </main>
   );
 }
